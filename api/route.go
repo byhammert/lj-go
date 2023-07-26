@@ -1,14 +1,16 @@
 package api
 
-/*infra_controller "github.com/piovani/aula/api/controller/infra"*/
+import (
+	infra_controller "github.com/byhammert/lj-go/api/controller/infra"
+)
 
 func (s *Service) GetRoutes() {
-	/*s.Engine.GET("/heart", infra_controller.Heart)
+	s.Engine.GET("/heart", infra_controller.Heart)
 
-	groupStudent := s.Engine.Group("students")
-	groupStudent.GET("/", s.StudentController.List)
-	groupStudent.POST("/", s.StudentController.Create)
-	groupStudent.PUT("/:id", s.StudentController.Update)
-	groupStudent.DELETE("/:id", s.StudentController.Delete)
-	groupStudent.GET("/:id", s.StudentController.Details)*/
+	groupCategory := s.Engine.Group("categories")
+	groupCategory.GET("/", s.CategoryController.List)
+	groupCategory.POST("/", s.CategoryController.Create)
+	groupCategory.PUT("/:id", s.CategoryController.Update)
+	groupCategory.DELETE("/:id", s.CategoryController.Delete)
+	groupCategory.GET("/:id", s.CategoryController.Details)
 }
