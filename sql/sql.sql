@@ -38,3 +38,25 @@ CREATE TABLE contas(
     ON DELETE CASCADE
 
 ) ENGINE=INNODB;
+
+CREATE TABLE lancamentos(
+    id int auto_increment primary key,
+    descricao varchar(60) not null,
+    valor decimal(15,2) not null,
+    data_compra timestamp not null,
+    data_vencimento timestamp not null,
+    data_pagamento timestamp,
+    tipo varchar(20) not null,
+    forma_pagamento varchar(20) not null,
+
+    id_categoria int not null,
+    id_conta int not null,
+    FOREIGN KEY (id_categoria)
+    REFERENCES categorias(id)
+    ON DELETE CASCADE,
+
+    
+    FOREIGN KEY (id_conta)
+    REFERENCES contas(id)
+    ON DELETE CASCADE
+)ENGINE=INNODB;
