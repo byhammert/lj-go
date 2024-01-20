@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/shopspring/decimal"
@@ -153,6 +154,7 @@ func CriarParcelaLancamento(w http.ResponseWriter, r *http.Request) {
 	}
 	quantidadeParcelas := decimal.NewFromInt32(parcelamento.Quantidade)
 	valorParcela := parcelamento.Lancamento.Valor.Div(quantidadeParcelas)
+	mes := 1
 	for i := 0; i < int(parcelamento.Quantidade); i++ {
 		lancamento := parcelamento.Lancamento
 		if parcelamento.Tipo != "RECORRENTE" {
@@ -162,7 +164,8 @@ func CriarParcelaLancamento(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if i > 0 {
-			lancamento.DataVencimento = lancamento.DataVencimento.AddDate(0, 1, 0)
+			lancamento.DataVencimento = lancamento.DataVencimento.AddDate(0, mes, 0)
+			mes++
 		}
 		_, erro = repositorioLancamento.Criar(lancamento)
 		if erro != nil {
@@ -217,4 +220,37 @@ func CriarAgendamentoLancamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.JSON(w, http.StatusCreated, lancamento)
+}
+
+func BuscarLancamentoDoMes(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+	layout := "2006-01-02"
+	periodo, erro := time.Parse(layout, parametros["periodo"])
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeLancamentos(db)
+	lancamentos, erro := repositorio.BuscarLancamentosDoMes(usuarioID, periodo)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, lancamentos)
 }

@@ -36,4 +36,10 @@ var rotasLancamentos = []Rota{
 		Funcao:             controllers.CriarLancamento,
 		RequerAutenticacao: true,
 	},
+	{
+		URI:                "/lancamentos/{periodo}/por-mes",
+		Metodo:             http.MethodGet,
+		Funcao:             controllers.BuscarLancamentoDoMes,
+		RequerAutenticacao: true,
+	},
 }
