@@ -3,16 +3,18 @@ package modelos
 import (
 	"errors"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 type Conta struct {
-	ID        uint64  `json:"id,omitempty"`
-	Nome      string  `json:"nome,omitempty"`
-	Saldo     float64 `json:"saldo,omitempty"`
-	Imagem    string  `json:"image,omitempty"`
-	Status    string  `json:"status,omitempty"`
-	Tipo      string  `json:"tipo,omitempty"`
-	UsuarioID uint64  `json:"usuario-id,omitempty"`
+	ID        uint64          `json:"id,omitempty"`
+	Nome      string          `json:"nome,omitempty"`
+	Saldo     decimal.Decimal `json:"saldo,omitempty"`
+	Imagem    string          `json:"image,omitempty"`
+	Status    string          `json:"status,omitempty"`
+	Tipo      string          `json:"tipo,omitempty"`
+	UsuarioID uint64          `json:"usuario-id,omitempty"`
 }
 
 func (conta *Conta) Preparar() error {

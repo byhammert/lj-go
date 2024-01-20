@@ -16,6 +16,8 @@ var (
 	// Porta onde a API vai estar rodando
 	Porta = 0
 
+	ParcelasRecorrentes = 0
+
 	// SecretKey é a chae que vai ser usada para assinar o token
 	SecretKey []byte
 )
@@ -39,4 +41,9 @@ func Carregar() {
 	)
 
 	SecretKey = []byte(os.Getenv("SECRET_KEY"))
+
+	ParcelasRecorrentes, erro = strconv.Atoi(os.Getenv("PARCELAS_RECORRENTES"))
+	if erro != nil {
+		ParcelasRecorrentes = 10
+	}
 }
