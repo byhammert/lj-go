@@ -8,9 +8,9 @@ import (
 	"api/src/respostas"
 	"api/src/seguranca"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -23,11 +23,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Print(corpoRequest)
+
 	var usuario modelos.Usuario
 	if erro = json.Unmarshal(corpoRequest, &usuario); erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
+	fmt.Print(usuario)
 
 	db, erro := banco.Conectar()
 	if erro != nil {
@@ -56,7 +59,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usuarioID := strconv.FormatUint(usuarioSalvoNoBanco.ID, 10)
+	usuarioID := usuarioSalvoNoBanco.ID
 
 	respostas.JSON(w, http.StatusOK, modelos.DadosAutenticacao{ID: usuarioID, Token: token})
 }

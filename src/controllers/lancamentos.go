@@ -53,26 +53,28 @@ func CriarLancamento(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	// ATUALIZAR CONTA
-	repositorioConta := repositorios.NovoRepositorioDeContas(db)
-	conta, erro := repositorioConta.BuscarPorId(lancamento.CantaID)
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
+	if lancamento.DataPagamento.Valid {
+		repositorioConta := repositorios.NovoRepositorioDeContas(db)
+		conta, erro := repositorioConta.BuscarPorId(lancamento.CantaID)
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
 
-	novoSaldo := conta.Saldo
-	if lancamento.Tipo == "RECEITA" {
-		novoSaldo = novoSaldo.Add(lancamento.Valor)
-	} else {
-		novoSaldo = novoSaldo.Sub(lancamento.Valor)
-	}
+		novoSaldo := conta.Saldo
+		if lancamento.Tipo == "RECEITA" {
+			novoSaldo = novoSaldo.Add(lancamento.Valor)
+		} else {
+			novoSaldo = novoSaldo.Sub(lancamento.Valor)
+		}
 
-	conta.Saldo = novoSaldo
+		conta.Saldo = novoSaldo
 
-	erro = repositorioConta.Atualizar(conta.ID, conta)
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
+		erro = repositorioConta.Atualizar(conta.ID, conta)
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
 	}
 
 	// CRIAR LANCAMENTO
@@ -137,7 +139,6 @@ func CriarParcelaLancamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	parcelamento.Lancamento.UsuarioID = usuarioID
-	parcelamento.Lancamento.Agendada = true
 
 	db, erro := banco.Conectar()
 	if erro != nil {
@@ -175,51 +176,6 @@ func CriarParcelaLancamento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.JSON(w, http.StatusNoContent, nil)
-}
-
-func CriarAgendamentoLancamento(w http.ResponseWriter, r *http.Request) {
-	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
-	if erro != nil {
-		respostas.Erro(w, http.StatusUnauthorized, erro)
-		return
-	}
-
-	corpoRequest, erro := io.ReadAll(r.Body)
-	if erro != nil {
-		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
-		return
-	}
-
-	var lancamento modelos.Lancamento
-	if erro = json.Unmarshal(corpoRequest, &lancamento); erro != nil {
-		respostas.Erro(w, http.StatusBadRequest, erro)
-		return
-	}
-
-	if erro = lancamento.Preparar(); erro != nil {
-		respostas.Erro(w, http.StatusBadRequest, erro)
-		return
-	}
-
-	lancamento.UsuarioID = usuarioID
-	lancamento.Agendada = true
-
-	db, erro := banco.Conectar()
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	defer db.Close()
-
-	repositorioLancamento := repositorios.NovoRepositorioDeLancamentos(db)
-	lancamento.ID, erro = repositorioLancamento.Criar(lancamento)
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-
-	respostas.JSON(w, http.StatusCreated, lancamento)
 }
 
 func BuscarLancamentoDoMes(w http.ResponseWriter, r *http.Request) {

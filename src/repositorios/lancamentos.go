@@ -18,7 +18,7 @@ func NovoRepositorioDeLancamentos(db *sql.DB) *Lancamentos {
 func (repositorio Lancamentos) Criar(lancamento modelos.Lancamento) (uint64, error) {
 	statement, erro := repositorio.db.Prepare(
 		`insert into lancamentos
-			(descricao, valor, data_compra, data_vencimento, data_pagamento, tipo, forma_pagamento, id_categoria, id_usuario, id_conta, agendada)
+			(descricao, valor, data_compra, data_vencimento, data_pagamento, tipo, forma_pagamento, id_categoria, id_usuario, id_conta, detalhe)
 			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,
 	)
@@ -30,7 +30,7 @@ func (repositorio Lancamentos) Criar(lancamento modelos.Lancamento) (uint64, err
 	defer statement.Close()
 
 	resultado, erro := statement.Exec(lancamento.Descricao, lancamento.Valor, lancamento.DataCompra, lancamento.DataVencimento,
-		lancamento.DataPagamento, lancamento.Tipo, lancamento.FormaPagamento, lancamento.CategoriaID, lancamento.UsuarioID, lancamento.CantaID, lancamento.Agendada)
+		lancamento.DataPagamento, lancamento.Tipo, lancamento.FormaPagamento, lancamento.CategoriaID, lancamento.UsuarioID, lancamento.CantaID, lancamento.Detalhe)
 	if erro != nil {
 		return 0, erro
 	}
@@ -48,6 +48,7 @@ func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error
 		SELECT 
 			l.id,
 			l.descricao, 
+			l.detalhe,
 			l.valor, 
 			l.data_compra, 
 			l.data_vencimento, 
@@ -58,8 +59,7 @@ func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error
 			l.id_usuario, 
 			l.id_conta,
 			co.nome,
-			ca.nome,
-			l.agendada
+			ca.nome
 		FROM
 			lancamentos l
 		INNER JOIN
@@ -86,6 +86,7 @@ func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error
 		if erro = linha.Scan(
 			&lancamento.ID,
 			&lancamento.Descricao,
+			&lancamento.Detalhe,
 			&lancamento.Valor,
 			&lancamento.DataCompra,
 			&lancamento.DataVencimento,
@@ -97,7 +98,6 @@ func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error
 			&lancamento.CantaID,
 			&lancamento.ContaNome,
 			&lancamento.CategoriaNome,
-			&lancamento.Agendada,
 		); erro != nil {
 			return modelos.Lancamento{}, erro
 		}
@@ -119,6 +119,7 @@ func (repositorio Lancamentos) BuscarLancamentosDoMes(usuarioID uint64, periodo 
 		SELECT 
 			l.id,
 			l.descricao, 
+			l.detalhe, 
 			l.valor, 
 			l.data_compra, 
 			l.data_vencimento, 
@@ -129,8 +130,7 @@ func (repositorio Lancamentos) BuscarLancamentosDoMes(usuarioID uint64, periodo 
 			l.id_usuario, 
 			l.id_conta,
 			co.nome,
-			ca.nome,
-			l.agendada
+			ca.nome
 		FROM
 			lancamentos l
 		INNER JOIN
@@ -160,6 +160,7 @@ func (repositorio Lancamentos) BuscarLancamentosDoMes(usuarioID uint64, periodo 
 		if erro = linhas.Scan(
 			&lancamento.ID,
 			&lancamento.Descricao,
+			&lancamento.Detalhe,
 			&lancamento.Valor,
 			&lancamento.DataCompra,
 			&lancamento.DataVencimento,
@@ -171,7 +172,6 @@ func (repositorio Lancamentos) BuscarLancamentosDoMes(usuarioID uint64, periodo 
 			&lancamento.CantaID,
 			&lancamento.ContaNome,
 			&lancamento.CategoriaNome,
-			&lancamento.Agendada,
 		); erro != nil {
 			return nil, erro
 		}

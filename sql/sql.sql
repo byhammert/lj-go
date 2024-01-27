@@ -42,13 +42,13 @@ CREATE TABLE contas(
 CREATE TABLE lancamentos(
     id int auto_increment primary key,
     descricao varchar(60) not null,
+    detalhe text,
     valor decimal(15,2) not null,
     data_compra timestamp not null,
     data_vencimento timestamp not null default current_timestamp(),
     data_pagamento timestamp null default null,
     tipo varchar(20) not null,
     forma_pagamento varchar(20) not null,
-    agendada boolean default false,
 
     id_categoria int not null,
     id_usuario int not null,

@@ -25,18 +25,6 @@ var rotasLancamentos = []Rota{
 		RequerAutenticacao: true,
 	},
 	{
-		URI:                "/lancamentos/agendamento",
-		Metodo:             http.MethodPost,
-		Funcao:             controllers.CriarAgendamentoLancamento,
-		RequerAutenticacao: true,
-	},
-	{
-		URI:                "/lancamentos",
-		Metodo:             http.MethodPost,
-		Funcao:             controllers.CriarLancamento,
-		RequerAutenticacao: true,
-	},
-	{
 		URI:                "/lancamentos/{periodo}/por-mes",
 		Metodo:             http.MethodGet,
 		Funcao:             controllers.BuscarLancamentoDoMes,

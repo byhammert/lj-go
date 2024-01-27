@@ -12,17 +12,17 @@ type Lancamento struct {
 	ID             uint64          `json:"id,omitempty"`
 	Descricao      string          `json:"descricao,omitempty"`
 	Valor          decimal.Decimal `json:"valor,omitempty"`
-	DataCompra     time.Time       `json:"data-compra,omitempty"`
-	DataVencimento time.Time       `json:"data-vencimento,omitempty"`
-	DataPagamento  NullTime        `json:"data-pagamento,omitempty"`
+	DataCompra     time.Time       `json:"dataCompra,omitempty"`
+	DataVencimento time.Time       `json:"dataVencimento,omitempty"`
+	DataPagamento  NullTime        `json:"dataPagamento,omitempty"`
 	Tipo           string          `json:"tipo,omitempty"`
-	FormaPagamento string          `json:"forma-pagamento,omitempty"`
-	CantaID        uint64          `json:"conta-id,omitempty"`
-	CategoriaID    uint64          `json:"categoria-id,omitempty"`
-	ContaNome      string          `json:"conta-nome,omitempty"`
-	CategoriaNome  string          `json:"categoria-nome,omitempty"`
-	UsuarioID      uint64          `json:"usuario-id,omitempty"`
-	Agendada       bool            `json:"agendada,omitempty"`
+	FormaPagamento string          `json:"formaPagamento,omitempty"`
+	CantaID        uint64          `json:"contaID,omitempty"`
+	CategoriaID    uint64          `json:"categoriaID,omitempty"`
+	ContaNome      string          `json:"contaNome,omitempty"`
+	CategoriaNome  string          `json:"categoriaNome,omitempty"`
+	UsuarioID      uint64          `json:"usuarioID,omitempty"`
+	Detalhe        string          `json:"detalhe,omitempty"`
 }
 
 func (lancamento *Lancamento) Preparar() error {
