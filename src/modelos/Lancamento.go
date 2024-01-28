@@ -38,7 +38,7 @@ func (lancamento *Lancamento) Preparar() error {
 
 func (lancamento *Lancamento) validar() error {
 	if lancamento.Descricao == "" {
-		return errors.New("O descrição é obrigatório e não pode estar em branco")
+		return errors.New("A descrição é obrigatório e não pode estar em branco")
 	}
 
 	if lancamento.Valor.IsNegative() {

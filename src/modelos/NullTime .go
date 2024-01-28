@@ -15,3 +15,10 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	}
 	return nt.Time.MarshalJSON()
 }
+
+func (n NullTime) UnmarshalJSON(b []byte) error {
+
+	n.Valid = string(b) != "null"
+	e := n.Time.UnmarshalJSON(b)
+	return e
+}

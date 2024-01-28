@@ -37,6 +37,8 @@ func CriarLancamento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(lancamento)
+
 	if erro = lancamento.Preparar(); erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
