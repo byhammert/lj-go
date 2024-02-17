@@ -17,12 +17,13 @@ type Lancamento struct {
 	DataPagamento  NullTime        `json:"dataPagamento,omitempty"`
 	Tipo           string          `json:"tipo,omitempty"`
 	FormaPagamento string          `json:"formaPagamento,omitempty"`
-	CantaID        uint64          `json:"contaID,omitempty"`
+	ContaID        uint64          `json:"contaID,omitempty"`
 	CategoriaID    uint64          `json:"categoriaID,omitempty"`
 	ContaNome      string          `json:"contaNome,omitempty"`
 	CategoriaNome  string          `json:"categoriaNome,omitempty"`
 	UsuarioID      uint64          `json:"usuarioID,omitempty"`
 	Detalhe        string          `json:"detalhe,omitempty"`
+	FaturaID       uint64          `json:"faturaID,omitempty"`
 }
 
 func (lancamento *Lancamento) Preparar() error {
@@ -65,7 +66,7 @@ func (lancamento *Lancamento) validar() error {
 		return errors.New("O categoria é obrigatória")
 	}
 
-	if lancamento.CantaID < 0 {
+	if lancamento.ContaID < 0 {
 		return errors.New("O conta é obrigatória")
 	}
 

@@ -2,6 +2,7 @@ package modelos
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type NullTime struct {
@@ -16,9 +17,10 @@ func (nt NullTime) MarshalJSON() ([]byte, error) {
 	return nt.Time.MarshalJSON()
 }
 
-func (n NullTime) UnmarshalJSON(b []byte) error {
+func (n *NullTime) UnmarshalJSON(b []byte) error {
 
 	n.Valid = string(b) != "null"
 	e := n.Time.UnmarshalJSON(b)
+	fmt.Println(e)
 	return e
 }

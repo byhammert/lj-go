@@ -19,6 +19,12 @@ var rotasLancamentos = []Rota{
 		RequerAutenticacao: true,
 	},
 	{
+		URI:                "/lancamentos/{lancamentoId}",
+		Metodo:             http.MethodPut,
+		Funcao:             controllers.AtualizarLancamento,
+		RequerAutenticacao: true,
+	},
+	{
 		URI:                "/lancamentos/parcelamento",
 		Metodo:             http.MethodPost,
 		Funcao:             controllers.CriarParcelaLancamento,
@@ -28,6 +34,12 @@ var rotasLancamentos = []Rota{
 		URI:                "/lancamentos/{periodo}/por-mes",
 		Metodo:             http.MethodGet,
 		Funcao:             controllers.BuscarLancamentoDoMes,
+		RequerAutenticacao: true,
+	},
+	{
+		URI:                "/lancamentos/{periodo}/despesas-do-mes",
+		Metodo:             http.MethodGet,
+		Funcao:             controllers.BuscarDespesasDoMes,
 		RequerAutenticacao: true,
 	},
 }

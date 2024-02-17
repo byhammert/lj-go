@@ -39,6 +39,31 @@ CREATE TABLE contas(
 
 ) ENGINE=INNODB;
 
+CREATE TABLE cartoes(
+    id int auto_increment primary key,
+    descricao varchar(60) not null,
+
+    usuario_id int not null,
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuarios(id)
+    ON DELETE CASCADE
+)ENGINE=INNODB;
+
+CREATE TABLE faturas(
+    id int auto_increment primary key,
+    codigo_fatura int not null,
+    id_cartao int not null,
+    data_vencimento timestamp not null default current_timestamp(),
+    data_pagamento timestamp null default null,
+    fatura_fechada boolean,
+    valor decimal(15,2) not null,
+
+    FOREIGN KEY (id_cartao)
+    REFERENCES cartoes(id)
+    ON DELETE CASCADE
+
+)ENGINE=INNODB;
+
 CREATE TABLE lancamentos(
     id int auto_increment primary key,
     descricao varchar(60) not null,
@@ -53,16 +78,22 @@ CREATE TABLE lancamentos(
     id_categoria int not null,
     id_usuario int not null,
     id_conta int not null,
+    id_fatura int null default null,
     FOREIGN KEY (id_categoria)
     REFERENCES categorias(id)
     ON DELETE CASCADE,
 
-    
     FOREIGN KEY (id_conta)
     REFERENCES contas(id)
     ON DELETE CASCADE,
 
     FOREIGN KEY (id_usuario)
     REFERENCES usuarios(id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (id_fatura)
+    REFERENCES faturas(id)
     ON DELETE CASCADE
+
 )ENGINE=INNODB;
+

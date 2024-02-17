@@ -34,12 +34,13 @@ func CriarConta(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	conta.Status = "ATIVO"
+	conta.UsuarioID = usuarioID
+
 	if erro = conta.Preparar(); erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
-
-	conta.UsuarioID = usuarioID
 
 	db, erro := banco.Conectar()
 	if erro != nil {

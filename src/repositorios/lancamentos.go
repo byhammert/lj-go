@@ -16,11 +16,19 @@ func NovoRepositorioDeLancamentos(db *sql.DB) *Lancamentos {
 }
 
 func (repositorio Lancamentos) Criar(lancamento modelos.Lancamento) (uint64, error) {
+	var query string
+	if lancamento.FaturaID < 1 {
+		query = `insert into lancamentos
+		(descricao, valor, data_compra, data_vencimento, data_pagamento, tipo, forma_pagamento, id_categoria, id_usuario, id_conta, detalhe)
+		values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`
+	} else {
+		query = `insert into lancamentos
+		(descricao, valor, data_compra, data_vencimento, data_pagamento, tipo, forma_pagamento, id_categoria, id_usuario, id_conta, detalhe, id_fatura)
+		values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	}
 	statement, erro := repositorio.db.Prepare(
-		`insert into lancamentos
-			(descricao, valor, data_compra, data_vencimento, data_pagamento, tipo, forma_pagamento, id_categoria, id_usuario, id_conta, detalhe)
-			values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-		`,
+		query,
 	)
 
 	if erro != nil {
@@ -28,19 +36,72 @@ func (repositorio Lancamentos) Criar(lancamento modelos.Lancamento) (uint64, err
 	}
 
 	defer statement.Close()
+	if lancamento.FaturaID < 1 {
+		resultado, erro := statement.Exec(lancamento.Descricao, lancamento.Valor, lancamento.DataCompra, lancamento.DataVencimento,
+			lancamento.DataPagamento, lancamento.Tipo, lancamento.FormaPagamento, lancamento.CategoriaID, lancamento.UsuarioID, lancamento.ContaID, lancamento.Detalhe)
+		if erro != nil {
+			return 0, erro
+		}
 
-	resultado, erro := statement.Exec(lancamento.Descricao, lancamento.Valor, lancamento.DataCompra, lancamento.DataVencimento,
-		lancamento.DataPagamento, lancamento.Tipo, lancamento.FormaPagamento, lancamento.CategoriaID, lancamento.UsuarioID, lancamento.CantaID, lancamento.Detalhe)
+		ultimoIDInserido, erro := resultado.LastInsertId()
+		if erro != nil {
+			return 0, erro
+		}
+
+		return uint64(ultimoIDInserido), nil
+	} else {
+		resultado, erro := statement.Exec(lancamento.Descricao, lancamento.Valor, lancamento.DataCompra, lancamento.DataVencimento,
+			lancamento.DataPagamento, lancamento.Tipo, lancamento.FormaPagamento, lancamento.CategoriaID, lancamento.UsuarioID, lancamento.ContaID, lancamento.Detalhe, lancamento.FaturaID)
+		if erro != nil {
+			return 0, erro
+		}
+
+		ultimoIDInserido, erro := resultado.LastInsertId()
+		if erro != nil {
+			return 0, erro
+		}
+
+		return uint64(ultimoIDInserido), nil
+	}
+}
+
+func (repositorio Lancamentos) Atualizar(ID uint64, lancamento modelos.Lancamento) error {
+	statement, erro := repositorio.db.Prepare(
+		`UPDATE lancamentos SET 
+			descricao = ?, 
+			valor = ?, 
+			data_compra = ?, 
+			data_vencimento = ?, 
+			data_pagamento = ?, 
+			tipo = ?, 
+			forma_pagamento = ?,
+			id_categoria = ?,
+			detalhe = ?
+		WHERE id = ?`,
+	)
+
 	if erro != nil {
-		return 0, erro
+		return erro
 	}
 
-	ultimoIDInserido, erro := resultado.LastInsertId()
+	defer statement.Close()
+
+	_, erro = statement.Exec(
+		lancamento.Descricao,
+		lancamento.Valor,
+		lancamento.DataCompra,
+		lancamento.DataVencimento,
+		lancamento.DataPagamento,
+		lancamento.Tipo,
+		lancamento.FormaPagamento,
+		lancamento.CategoriaID,
+		lancamento.Detalhe,
+		ID)
 	if erro != nil {
-		return 0, erro
+		return erro
 	}
 
-	return uint64(ultimoIDInserido), nil
+	return nil
 }
 
 func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error) {
@@ -95,7 +156,7 @@ func (repositorio Lancamentos) BuscarPorID(ID uint64) (modelos.Lancamento, error
 			&lancamento.FormaPagamento,
 			&lancamento.CategoriaID,
 			&lancamento.UsuarioID,
-			&lancamento.CantaID,
+			&lancamento.ContaID,
 			&lancamento.ContaNome,
 			&lancamento.CategoriaNome,
 		); erro != nil {
@@ -169,7 +230,87 @@ func (repositorio Lancamentos) BuscarLancamentosDoMes(usuarioID uint64, periodo 
 			&lancamento.FormaPagamento,
 			&lancamento.CategoriaID,
 			&lancamento.UsuarioID,
-			&lancamento.CantaID,
+			&lancamento.ContaID,
+			&lancamento.ContaNome,
+			&lancamento.CategoriaNome,
+		); erro != nil {
+			return nil, erro
+		}
+
+		lancamentos = append(lancamentos, lancamento)
+	}
+
+	return lancamentos, nil
+}
+
+func (repositorio Lancamentos) BuscarLancamentosDoMesNaoPagasESemFatura(usuarioID uint64, periodo time.Time) ([]modelos.Lancamento, error) {
+	dataInicio, dataFim, erro := obterPeriodoMes(periodo.Year(), int(periodo.Month()))
+	if erro != nil {
+		return nil, erro
+	}
+
+	fmt.Println(periodo)
+	fmt.Println(dataInicio)
+	fmt.Println(dataFim)
+	linhas, erro := repositorio.db.Query(`
+		SELECT 
+			l.id,
+			l.descricao, 
+			l.detalhe, 
+			l.valor, 
+			l.data_compra, 
+			l.data_vencimento, 
+			l.data_pagamento, 
+			l.tipo, 
+			l.forma_pagamento, 
+			l.id_categoria, 
+			l.id_usuario, 
+			l.id_conta,
+			co.nome,
+			ca.nome
+		FROM
+			lancamentos l
+		INNER JOIN
+			contas co
+		ON
+			l.id_conta = co.id
+		INNER JOIN
+			categorias ca
+		ON
+			l.id_categoria = ca.id
+		WHERE
+			l.id_usuario = ?
+		AND 
+			l.data_vencimento BETWEEN date(?) AND date(?)
+		AND 
+			l.id_fatura IS NULL
+		AND 
+			l.data_pagamento IS NULL
+	`, usuarioID, dataInicio, dataFim)
+
+	if erro != nil {
+		return nil, erro
+	}
+
+	defer linhas.Close()
+
+	var lancamentos []modelos.Lancamento
+
+	for linhas.Next() {
+		var lancamento modelos.Lancamento
+		if erro = linhas.Scan(
+			&lancamento.ID,
+			&lancamento.Descricao,
+			&lancamento.Detalhe,
+			&lancamento.Valor,
+			&lancamento.DataCompra,
+			&lancamento.DataVencimento,
+			&lancamento.DataPagamento,
+			&lancamento.Tipo,
+			&lancamento.FormaPagamento,
+			&lancamento.CategoriaID,
+			&lancamento.UsuarioID,
+			&lancamento.ContaID,
 			&lancamento.ContaNome,
 			&lancamento.CategoriaNome,
 		); erro != nil {
