@@ -178,6 +178,74 @@ func AtualizarLancamento(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func DeletarLancamento(w http.ResponseWriter, r *http.Request) {
+	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	parametros := mux.Vars(r)
+	lancamentoID, erro := strconv.ParseUint(parametros["lancamentoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeLancamentos(db)
+	lancamento, erro := repositorio.BuscarPorID(lancamentoID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if lancamento.UsuarioID != usuarioID {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possível deletar um lancamento que não seja o seu"))
+		return
+	}
+
+	// ATUALIZAR CONTA
+	if lancamento.DataPagamento.Valid {
+		repositorioConta := repositorios.NovoRepositorioDeContas(db)
+		conta, erro := repositorioConta.BuscarPorId(lancamento.ContaID)
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
+
+		novoSaldo := conta.Saldo
+		if lancamento.Tipo != "RECEITA" {
+			novoSaldo = novoSaldo.Add(lancamento.Valor)
+		} else {
+			novoSaldo = novoSaldo.Sub(lancamento.Valor)
+		}
+
+		conta.Saldo = novoSaldo
+
+		erro = repositorioConta.Atualizar(conta.ID, conta)
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
+	}
+
+	erro = repositorio.Deletar(lancamentoID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusNoContent, nil)
+}
+
 func BuscarLancamentoPorId(w http.ResponseWriter, r *http.Request) {
 	parametros := mux.Vars(r)
 	lancamentoID, erro := strconv.ParseUint(parametros["lancamentoId"], 10, 64)
@@ -347,6 +415,22 @@ func BuscarDespesasDoMes(w http.ResponseWriter, r *http.Request) {
 		despesa.Descricao = lancamento.Descricao
 		despesa.Tipo = lancamento.Tipo
 		despesa.Valor = lancamento.Valor
+		despesas = append(despesas, despesa)
+	}
+
+	repositorioFatura := repositorios.NovoRepositorioDeFaturas(db)
+	fatura, erro := repositorioFatura.BuscarFaturaAtual()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	if (fatura != modelos.Fatura{}) {
+		var despesa modelos.Despesa
+		despesa.ID = fatura.ID
+		despesa.DataVencimento = fatura.DataVencimento
+		despesa.Descricao = "CARTÃO DE CRÉDITO"
+		despesa.Tipo = "FATURA"
+		despesa.Valor = fatura.Valor
 		despesas = append(despesas, despesa)
 	}
 

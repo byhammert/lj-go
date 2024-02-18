@@ -332,3 +332,22 @@ func obterPeriodoMes(ano, mes int) (inicioMes, fimMes time.Time, err error) {
 
 	return dataInicial, ultimoDiaMes, nil
 }
+
+func (repositorio Lancamentos) Deletar(ID uint64) error {
+	statement, erro := repositorio.db.Prepare(
+		"delete from lancamentos where id = ?",
+	)
+
+	if erro != nil {
+		return erro
+	}
+
+	defer statement.Close()
+
+	_, erro = statement.Exec(ID)
+	if erro != nil {
+		return erro
+	}
+
+	return nil
+}

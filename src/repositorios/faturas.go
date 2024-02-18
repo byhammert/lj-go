@@ -130,6 +130,44 @@ func (repositorio Faturas) Atualizar(ID uint64, fatura modelos.Fatura) error {
 	return nil
 }
 
+func (repositorio Faturas) BuscarFaturaAtual() (modelos.Fatura, error) {
+	linha, erro := repositorio.db.Query(
+		`SELECT id, 
+			id_cartao, 
+			data_vencimento, 
+			data_pagamento, 
+			fatura_fechada, 
+			valor, 
+			codigo_fatura 
+		FROM faturas 
+		where fatura_fechada != true`,
+	)
+
+	if erro != nil {
+		return modelos.Fatura{}, erro
+	}
+
+	defer linha.Close()
+
+	var fatura modelos.Fatura
+
+	if linha.Next() {
+		if erro = linha.Scan(
+			&fatura.ID,
+			&fatura.CartaoID,
+			&fatura.DataVencimento,
+			&fatura.DataPagamento,
+			&fatura.FaturaFechada,
+			&fatura.Valor,
+			&fatura.CodigoFatura,
+		); erro != nil {
+			return modelos.Fatura{}, erro
+		}
+	}
+
+	return fatura, nil
+}
+
 func (repositorio Faturas) BuscarFaturasPorCodigo(codigos []uint64) ([]modelos.Fatura, error) {
 	placeholders := make([]string, len(codigos))
 	for i, codigo := range codigos {

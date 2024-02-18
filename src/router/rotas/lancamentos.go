@@ -25,6 +25,12 @@ var rotasLancamentos = []Rota{
 		RequerAutenticacao: true,
 	},
 	{
+		URI:                "/lancamentos/{lancamentoId}",
+		Metodo:             http.MethodDelete,
+		Funcao:             controllers.DeletarLancamento,
+		RequerAutenticacao: true,
+	},
+	{
 		URI:                "/lancamentos/parcelamento",
 		Metodo:             http.MethodPost,
 		Funcao:             controllers.CriarParcelaLancamento,
